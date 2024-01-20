@@ -45,17 +45,19 @@ def hand_rank(hand):
     pair2 = kind(2, sorted(ranks))
     three_kind = kind(3, ranks)
     four_kind = kind(4, ranks)
-    straight = all(map((lambda r1,r2: r1-r2), ranks[:-1], ranks[1:]))
+    straight = all(map((lambda r1,r2: r1-r2==1), ranks[:-1], ranks[1:]))
+    ace_low_straight = (ranks == [14, 5, 4, 3, 2])
     flush = len(set(suits))==1
     return  ((8, *ranks) if (flush and straight) else
             ((7, four_kind, *ranks) if four_kind else
             ((6, three_kind, pair, *ranks) if (three_kind and pair) else
             ((5, *ranks) if flush else
             ((4, *ranks) if straight else
+            ((4, 5, 4, 3, 2, 1) if ace_low_straight else
             ((3, three_kind, *ranks) if three_kind else
             ((2, pair, pair2, *ranks) if (pair and pair2) else
             ((1, pair, *ranks) if pair else 
-            (0, *ranks)))))))))
+            (0, *ranks))))))))))
 
 
 
@@ -77,6 +79,7 @@ def tests():
     assert (hand_rank(['KD', '9S', 'TD', '9C', '9H']) == (3, 9, 13, 10, 9, 9, 9))  
     assert (hand_rank(['9D', '9S', 'TD', '9C', '9H']) == (7, 9, 10, 9, 9, 9, 9))  
     assert (hand_rank(['9D', '8D', '7D', '6D', '5D']) == (8, 9, 8, 7, 6, 5))
+    assert (hand_rank(['5H', '2D', 'AD', '4S', '3C']) == (4, 5, 4, 3, 2, 1))
     return "tests pass!"
 print(tests())
 

@@ -76,6 +76,7 @@
             (define four-kind (kind 4 ranks))
             (define straight (andmap (lambda (r1 r2) (= (- r1 r2) 1))
                                     (reverse (rest (reverse ranks))) (rest ranks)))
+            (define ace-low-straight (equal? ranks '(14 5 4 3 2)))
             (define flush (= (length (set->list (list->set suits))) 1)))
             ; - IN -
             (cond
@@ -84,6 +85,7 @@
                 [(and (true? three-kind) (true? pair)) (cons 6 (cons three-kind (cons pair ranks)))]
                 [flush (cons 5 ranks)]
                 [straight (cons 4 ranks)]
+                [ace-low-straight (list 4 5 4 3 2 1)]
                 [(true? three-kind) (cons 3 (cons three-kind ranks))]
                 [(and (true? pair) (true? pair2)) (cons 2 (cons pair (cons pair2 ranks)))]
                 [(true? pair) (cons 1 (cons pair ranks))]
@@ -114,6 +116,7 @@
 (check-equal? (hand-rank '("KD" "9S" "TD" "9C" "9H")) '(3 9 13 10 9 9 9))
 (check-equal? (hand-rank '("9D" "9S" "TD" "9C" "9H")) '(7 9 10 9 9 9 9))
 (check-equal? (hand-rank '("9D" "8D" "7D" "6D" "5D")) '(8 9 8 7 6 5))
+(check-equal? (hand-rank '("5H" "2D" "AD" "4S" "3C")) '(4 5 4 3 2 1))
 
 ;======================
 ; action!
