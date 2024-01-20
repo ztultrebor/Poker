@@ -70,7 +70,11 @@ def hand_value(hand):
 def best_hand(hands):
     """ [ListOf [ListOf String]] -> [ListOf String]
     returns the winning hand from a round of poker"""
-    return sorted(hands, key=hand_value, reverse=True)[0]
+    ordered = sorted(hands, key=hand_value, reverse=True)
+    for i in range(len(ordered)-1):
+        if hand_value(ordered[i]) > hand_value(ordered[i+1]):
+            return ordered[:i+1]
+    return ordered
 
 
 
@@ -78,6 +82,18 @@ def best_hand(hands):
 # tests
 
 def tests():
+    hc = ["AS", "6C", "4C", "5H", "3C"]
+    hc2 = ["6C", "4C", "5H", "3C", "AS"]
+    hc3 = ["4C", "5H", "3C", "AS", "6C"]
+    p = ["AS", "6C", "AC", "5H", "3C"]
+    p2 = ["KD", "9S", "TD", "TC", "9H"]
+    k3 = ["KD", "9S", "TD", "9C", "9H"]
+    s = ["9D", "8S", "7D", "6C", "5H"]
+    als = ["5H", "2D", "AD", "4S", "3C"]
+    f = ["KD", "9D", "2D", "TD", "9D"]
+    fh = ["9D", "9S", "TD", "TC", "9H"]
+    k4 = ["9D", "9S", "TD", "9C", "9H"]
+    sf = ["9D", "8D", "7D", "6D", "5D"]
     assert (card_rank("QH") == 12)
     assert (card_rank("AS") == 14)
     assert (kind(2, [5, 14, 5, 13, 4]) == 5)
@@ -85,16 +101,20 @@ def tests():
     assert (kind(2, [5, 14, 5, 13, 5]) == None)
     assert (kind(3, [5, 14, 5, 13, 4]) == None)
     assert (kind(2, [5, 14, 5, 14, 5]) == 14)
-    assert (hand_rank(['KD', '9S', 'TD', 'TC', '9H']) == [13, 10, 10, 9, 9])
-    assert (hand_rank(['5H', '2D', 'AD', '4S', '3C']) == [5, 4, 3, 2, 1])
-    assert (hand_value(['KD', '9S', 'TD', 'TC', '9H']) == (2, 10, 9, 13, 10, 10, 9, 9))
-    assert (hand_value(['9D', '9S', 'TD', 'TC', '9H']) == (6, 9, 10))
-    assert (hand_value(['9D', '8S', '7D', '6C', '5H']) == (4, 9, 8, 7, 6, 5))
-    assert (hand_value(['KD', '9D', '2D', 'TD', '9D']) == (5, 13, 10, 9, 9, 2))
-    assert (hand_value(['KD', '9S', 'TD', '9C', '9H']) == (3, 9, 13, 10, 9, 9, 9))  
-    assert (hand_value(['9D', '9S', 'TD', '9C', '9H']) == (7, 9, 10, 9, 9, 9, 9))  
-    assert (hand_value(['9D', '8D', '7D', '6D', '5D']) == (8, 9, 8, 7, 6, 5))
-    assert (hand_value(['5H', '2D', 'AD', '4S', '3C']) == (4, 5, 4, 3, 2, 1))
+    assert (hand_rank(p2) == [13, 10, 10, 9, 9])
+    assert (hand_rank(als) == [5, 4, 3, 2, 1])
+    assert (hand_value(sf) == (8, 9, 8, 7, 6, 5))
+    assert (hand_value(k4) == (7, 9, 10, 9, 9, 9, 9))
+    assert (hand_value(fh) == (6, 9, 10))
+    assert (hand_value(f) == (5, 13, 10, 9, 9, 2))
+    assert (hand_value(s) == (4, 9, 8, 7, 6, 5))
+    assert (hand_value(als) == (4, 5, 4, 3, 2, 1))
+    assert (hand_value(k3) == (3, 9, 13, 10, 9, 9, 9))  
+    assert hand_value(p2) == (2, 10, 9, 13, 10, 10, 9, 9)
+    assert hand_value(p) == (1, 14, 14, 14, 6, 5, 3)
+    assert hand_value(hc) == (0, 14, 6, 5, 4, 3)
+    assert best_hand([f, hc, fh, p2]) == [fh]
+    assert best_hand([hc, hc2, hc3]) == [hc, hc2, hc3]
     return "tests pass!"
 print(tests())
 
