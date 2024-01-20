@@ -81,8 +81,8 @@
     (local (
             (define suits (map (lambda (c) (second (string->list c))) hand))
             (define ranks (hand-rank hand))
-            (define pair (kind 2 ranks))
-            (define pair2 (kind 2 (sort ranks <)))
+            (define pairs 
+                (sort (set->list (list->set (list (kind 2 ranks) (kind 2 (sort ranks <))))) >))
             (define three-kind (kind 3 ranks))
             (define four-kind (kind 4 ranks))
             (define straight (andmap (lambda (r1 r2) (= (- r1 r2) 1))
@@ -92,12 +92,12 @@
             (cond
                 [(and flush straight) (cons 8 ranks)]
                 [(true? four-kind) (cons 7 (cons four-kind ranks))]
-                [(and (true? three-kind) (true? pair)) (list 6 three-kind pair)]
+                [(and (true? three-kind) (true? (first pairs))) (cons 6 (cons three-kind pairs))]
                 [flush (cons 5 ranks)]
                 [straight (cons 4 ranks)]
                 [(true? three-kind) (cons 3 (cons three-kind ranks))]
-                [(and (true? pair) (true? pair2)) (cons 2 (cons pair (cons pair2 ranks)))]
-                [(true? pair) (cons 1 (cons pair ranks))]
+                [(and (true? (first pairs)) (= (length pairs) 2) (cons 2 (append pairs ranks)))]
+                [(true? (first pairs)) (cons 1 (append pairs ranks))]
                 [else (cons 0 ranks)])))
 
 
@@ -105,6 +105,29 @@
     """ [Maybe X] -> Boolean
     Like false?, but the opposite"""
     (not (false? x)))
+
+
+
+(define (list>? lst1 lst2)
+    """[ListOf N] [ListOf N] -> Boolean
+    Returns #true if lst1 >= lst2"""
+    (cond
+        [(empty? lst1) #f]
+        [(> (first lst1) (first lst2)) #t]
+        [(< (first lst1) (first lst2)) #f]
+        [else (list>? (rest lst1) (rest lst2))]))
+
+
+(define (best-hand hands)
+    """ [ListOf [ListOf String]] -> [ListOf String]
+    returns the winning hand from a round of poker"""
+    (local (
+        (define ordered (sort hands #:key hand-value list>?)))
+        ; - IN -
+        ordered
+        #;
+        (append (first ordered)
+            (if (list>? (second ordered) (first ordered)) (list (second ordered)) '()))))
 
 
 
@@ -128,8 +151,12 @@
 (check-equal? (hand-value '("9D" "9S" "TD" "9C" "9H")) '(7 9 10 9 9 9 9))
 (check-equal? (hand-value '("9D" "8D" "7D" "6D" "5D")) '(8 9 8 7 6 5))
 (check-equal? (hand-value '("5H" "2D" "AD" "4S" "3C")) '(4 5 4 3 2 1))
+(check-equal? (hand-value '("AS" "6C" "AC" "5H" "3C")) '(1 14 14 14 6 5 3))
+(check-equal? (hand-value '("4S" "5D" "AD" "4H" "AH")) '(2 14 4 14 14 5 4 4))
 
 ;======================
 ; action!
 
-(deal 3 5)
+(define round (deal 10 5))
+
+(best-hand round)

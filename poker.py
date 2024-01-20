@@ -51,21 +51,26 @@ def hand_value(hand):
     Only winning matters, so not a quantitative measure"""
     suits = [c[1] for c in hand]
     ranks = hand_rank(hand)
-    pair = kind(2, ranks)
-    pair2 = kind(2, sorted(ranks))
+    pairs = sorted(list(set([kind(2, ranks), kind(2, sorted(ranks))])), reverse=True)
     three_kind = kind(3, ranks)
     four_kind = kind(4, ranks)
     straight = all(map((lambda r1,r2: r1-r2==1), ranks[:-1], ranks[1:]))
     flush = len(set(suits))==1
     return  ((8, *ranks) if (flush and straight) else
             ((7, four_kind, *ranks) if four_kind else
-            ((6, three_kind, pair) if (three_kind and pair) else
+            ((6, three_kind, *pairs) if (three_kind and pairs[0]) else
             ((5, *ranks) if flush else
             ((4, *ranks) if straight else
             ((3, three_kind, *ranks) if three_kind else
-            ((2, pair, pair2, *ranks) if (pair and pair2) else
-            ((1, pair, *ranks) if pair else 
+            ((2, *pairs, *ranks) if (pairs[0] and len(pairs)==2) else
+            ((1, *pairs, *ranks) if pairs[0] else 
             (0, *ranks)))))))))
+
+
+def best_hand(hands):
+    """ [ListOf [ListOf String]] -> [ListOf String]
+    returns the winning hand from a round of poker"""
+    return sorted(hands, key=hand_value, reverse=True)[0]
 
 
 
@@ -98,5 +103,6 @@ print(tests())
 #===========================
 # action!
 
-hand = deal(3)
-print(hand)
+round = deal(10)
+print(round)
+print(best_hand(round))
