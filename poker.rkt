@@ -82,10 +82,10 @@
             (cond
                 [(and flush straight) (cons 8 ranks)]
                 [(true? four-kind) (cons 7 (cons four-kind ranks))]
-                [(and (true? three-kind) (true? pair)) (cons 6 (cons three-kind (cons pair ranks)))]
+                [(and (true? three-kind) (true? pair)) (list 6 three-kind pair)]
                 [flush (cons 5 ranks)]
                 [straight (cons 4 ranks)]
-                [ace-low-straight (list 4 5 4 3 2 1)]
+                [ace-low-straight (list 4 5)]
                 [(true? three-kind) (cons 3 (cons three-kind ranks))]
                 [(and (true? pair) (true? pair2)) (cons 2 (cons pair (cons pair2 ranks)))]
                 [(true? pair) (cons 1 (cons pair ranks))]
@@ -110,13 +110,13 @@
 (check-equal? (kind 3 (list 5 14 5 13 4)) #f)
 (check-equal? (kind 2 (list 5 14 5 14 5)) 14)
 (check-equal? (hand-rank '("KD" "9S" "TD" "TC" "9H")) '(2 10 9 13 10 10 9 9))
-(check-equal? (hand-rank '("9D" "9S" "TD" "TC" "9H")) '(6 9 10 10 10 9 9 9))
+(check-equal? (hand-rank '("9D" "9S" "TD" "TC" "9H")) '(6 9 10))
 (check-equal? (hand-rank '("9D" "8S" "7D" "6C" "5H")) '(4 9 8 7 6 5))
 (check-equal? (hand-rank '("KD" "9D" "2D" "TD" "9D")) '(5 13 10 9 9 2))
 (check-equal? (hand-rank '("KD" "9S" "TD" "9C" "9H")) '(3 9 13 10 9 9 9))
 (check-equal? (hand-rank '("9D" "9S" "TD" "9C" "9H")) '(7 9 10 9 9 9 9))
 (check-equal? (hand-rank '("9D" "8D" "7D" "6D" "5D")) '(8 9 8 7 6 5))
-(check-equal? (hand-rank '("5H" "2D" "AD" "4S" "3C")) '(4 5 4 3 2 1))
+(check-equal? (hand-rank '("5H" "2D" "AD" "4S" "3C")) '(4 5))
 
 ;======================
 ; action!

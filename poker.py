@@ -50,10 +50,10 @@ def hand_rank(hand):
     flush = len(set(suits))==1
     return  ((8, *ranks) if (flush and straight) else
             ((7, four_kind, *ranks) if four_kind else
-            ((6, three_kind, pair, *ranks) if (three_kind and pair) else
+            ((6, three_kind, pair) if (three_kind and pair) else
             ((5, *ranks) if flush else
             ((4, *ranks) if straight else
-            ((4, 5, 4, 3, 2, 1) if ace_low_straight else
+            ((4, 5) if ace_low_straight else
             ((3, three_kind, *ranks) if three_kind else
             ((2, pair, pair2, *ranks) if (pair and pair2) else
             ((1, pair, *ranks) if pair else 
@@ -73,13 +73,13 @@ def tests():
     assert (kind(3, [5, 14, 5, 13, 4]) == None)
     assert (kind(2, [5, 14, 5, 14, 5]) == 14)
     assert (hand_rank(['KD', '9S', 'TD', 'TC', '9H']) == (2, 10, 9, 13, 10, 10, 9, 9))
-    assert (hand_rank(['9D', '9S', 'TD', 'TC', '9H']) == (6, 9, 10, 10, 10, 9, 9, 9))
+    assert (hand_rank(['9D', '9S', 'TD', 'TC', '9H']) == (6, 9, 10))
     assert (hand_rank(['9D', '8S', '7D', '6C', '5H']) == (4, 9, 8, 7, 6, 5))
     assert (hand_rank(['KD', '9D', '2D', 'TD', '9D']) == (5, 13, 10, 9, 9, 2))
     assert (hand_rank(['KD', '9S', 'TD', '9C', '9H']) == (3, 9, 13, 10, 9, 9, 9))  
     assert (hand_rank(['9D', '9S', 'TD', '9C', '9H']) == (7, 9, 10, 9, 9, 9, 9))  
     assert (hand_rank(['9D', '8D', '7D', '6D', '5D']) == (8, 9, 8, 7, 6, 5))
-    assert (hand_rank(['5H', '2D', 'AD', '4S', '3C']) == (4, 5, 4, 3, 2, 1))
+    assert (hand_rank(['5H', '2D', 'AD', '4S', '3C']) == (4, 5))
     return "tests pass!"
 print(tests())
 
