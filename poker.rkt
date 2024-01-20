@@ -47,12 +47,33 @@
     (iterator ranks 0)))
 
 
+(define (kind n ranks)
+    """ N [ListOf N] -> N
+    determines if there's an n-of-a-kind match and if so returns the rank"""
+    (local (
+        (define (count-ranks this-rank)
+            """ N -> [Maybe N]
+            Counts up the number of a given rank in a hand"""
+            (cond
+                [(empty? this-rank) #f]
+                [else (if (= (count (lambda (r) (= (first this-rank) r)) ranks) n)
+                            (first this-rank)
+                            (count-ranks (rest this-rank)))])))
+        ; - IN -
+        (count-ranks ranks)))
+
+
 
 ;======================
 ; tests
 
 (check-equal? (card-rank "QH") 12 "not equal")
 (check-equal? (card-rank "AS") 14 "not equal")
+(check-equal? (kind 2 (list 5 14 5 13 4)) 5)
+(check-equal? (kind 3 (list 5 14 5 13 5)) 5)
+(check-equal? (kind 2 (list 5 14 5 13 5)) #f)
+(check-equal? (kind 3 (list 5 14 5 13 4)) #f)
+(check-equal? (kind 2 (list 5 14 5 14 5)) 14)
 
 
 ;======================
