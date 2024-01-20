@@ -85,16 +85,16 @@
                 (sort (set->list (list->set (list (kind 2 ranks) (kind 2 (sort ranks <))))) >))
             (define three-kind (kind 3 ranks))
             (define four-kind (kind 4 ranks))
-            (define straight (andmap (lambda (r1 r2) (= (- r1 r2) 1))
+            (define s (andmap (lambda (r1 r2) (= (- r1 r2) 1))
                                     (reverse (rest (reverse ranks))) (rest ranks)))
-            (define flush (= (length (set->list (list->set suits))) 1)))
+            (define f (= (length (set->list (list->set suits))) 1)))
             ; - IN -
             (cond
-                [(and flush straight) (cons 8 ranks)]
+                [(and f s) (cons 8 ranks)]
                 [(true? four-kind) (cons 7 (cons four-kind ranks))]
                 [(and (true? three-kind) (true? (first pairs))) (cons 6 (cons three-kind pairs))]
-                [flush (cons 5 ranks)]
-                [straight (cons 4 ranks)]
+                [f (cons 5 ranks)]
+                [s (cons 4 ranks)]
                 [(true? three-kind) (cons 3 (cons three-kind ranks))]
                 [(and (true? (first pairs)) (= (length pairs) 2) (cons 2 (append pairs ranks)))]
                 [(true? (first pairs)) (cons 1 (append pairs ranks))]
@@ -112,7 +112,7 @@
     """[ListOf N] [ListOf N] -> Boolean
     Returns #true if lst1 >= lst2"""
     (cond
-        [(empty? lst1) #f]
+        [(empty? lst1) #t]
         [(> (first lst1) (first lst2)) #t]
         [(< (first lst1) (first lst2)) #f]
         [else (list>? (rest lst1) (rest lst2))]))
@@ -122,18 +122,33 @@
     """ [ListOf [ListOf String]] -> [ListOf String]
     returns the winning hand from a round of poker"""
     (local (
-        (define ordered (sort hands #:key hand-value list>?)))
+        (define ordered (sort hands #:key hand-value list>?))
+        (define (find-winning-hand hs)
+            (cond
+                [(empty? (rest hs)) (list (first hs))]
+                [(list>? (hand-value (second ordered)) (hand-value (first ordered)))
+                    (cons (first hs) (find-winning-hand (rest hs)))]
+                [else (list (first hs))])))
         ; - IN -
-        ordered
-        #;
-        (append (first ordered)
-            (if (list>? (second ordered) (first ordered)) (list (second ordered)) '()))))
+        (find-winning-hand ordered)))
 
 
 
 ;======================
 ; tests
 
+(define hc '("AS" "6C" "4C" "5H" "3C"))
+(define hc2 '("6C" "4C" "5H" "3C" "AS" ))
+(define hc3 '("4C" "5H" "3C" "AS" "6C"))
+(define p '("AS" "6C" "AC" "5H" "3C"))
+(define 2p '("KD" "9S" "TD" "TC" "9H"))
+(define 3k '("KD" "9S" "TD" "9C" "9H"))
+(define s '("9D" "8S" "7D" "6C" "5H"))
+(define als '("5H" "2D" "AD" "4S" "3C"))
+(define f '("KD" "9D" "2D" "TD" "9D"))
+(define fh '("9D" "9S" "TD" "TC" "9H"))
+(define 4k '("9D" "9S" "TD" "9C" "9H"))
+(define sf '("9D" "8D" "7D" "6D" "5D"))
 (check-equal? (card-rank "QH") 12 "not equal")
 (check-equal? (card-rank "AS") 14 "not equal")
 (check-equal? (kind 2 (list 5 14 5 13 4)) 5)
@@ -141,18 +156,20 @@
 (check-equal? (kind 2 (list 5 14 5 13 5)) #f)
 (check-equal? (kind 3 (list 5 14 5 13 4)) #f)
 (check-equal? (kind 2 (list 5 14 5 14 5)) 14)
-(check-equal? (hand-rank '("KD" "9S" "TD" "TC" "9H")) '(13 10 10 9 9))
-(check-equal? (hand-rank '("5H" "2D" "AD" "4S" "3C")) '(5 4 3 2 1))
-(check-equal? (hand-value '("KD" "9S" "TD" "TC" "9H")) '(2 10 9 13 10 10 9 9))
-(check-equal? (hand-value '("9D" "9S" "TD" "TC" "9H")) '(6 9 10))
-(check-equal? (hand-value '("9D" "8S" "7D" "6C" "5H")) '(4 9 8 7 6 5))
-(check-equal? (hand-value '("KD" "9D" "2D" "TD" "9D")) '(5 13 10 9 9 2))
-(check-equal? (hand-value '("KD" "9S" "TD" "9C" "9H")) '(3 9 13 10 9 9 9))
-(check-equal? (hand-value '("9D" "9S" "TD" "9C" "9H")) '(7 9 10 9 9 9 9))
-(check-equal? (hand-value '("9D" "8D" "7D" "6D" "5D")) '(8 9 8 7 6 5))
-(check-equal? (hand-value '("5H" "2D" "AD" "4S" "3C")) '(4 5 4 3 2 1))
-(check-equal? (hand-value '("AS" "6C" "AC" "5H" "3C")) '(1 14 14 14 6 5 3))
-(check-equal? (hand-value '("4S" "5D" "AD" "4H" "AH")) '(2 14 4 14 14 5 4 4))
+(check-equal? (hand-rank 2p) '(13 10 10 9 9))
+(check-equal? (hand-rank als) '(5 4 3 2 1))
+(check-equal? (hand-value sf) '(8 9 8 7 6 5))
+(check-equal? (hand-value 4k) '(7 9 10 9 9 9 9))
+(check-equal? (hand-value fh) '(6 9 10))
+(check-equal? (hand-value f) '(5 13 10 9 9 2))
+(check-equal? (hand-value s) '(4 9 8 7 6 5))
+(check-equal? (hand-value als) '(4 5 4 3 2 1))
+(check-equal? (hand-value 3k) '(3 9 13 10 9 9 9))
+(check-equal? (hand-value 2p) '(2 10 9 13 10 10 9 9))
+(check-equal? (hand-value p) '(1 14 14 14 6 5 3))
+(check-equal? (hand-value hc) '(0 14 6 5 4 3))
+(check-equal? (best-hand (list f hc fh 2p)) (list fh))
+(check-equal? (best-hand (list hc hc2 hc3)) (list hc3 hc2 hc))
 
 ;======================
 ; action!
