@@ -116,36 +116,28 @@
         [(< (first lst1) (first lst2)) #f]
         [else (list>? (rest lst1) (rest lst2))]))
 
-;; !!! can these be abstracted?
-(define (rank>? hand1 hand2)
-    """[ListOf N] [ListOf N] -> Boolean
-    Returns #true if rank1 > rank2"""
-    (local (
-            (define rank1 (hand-value hand1))
-            (define rank2 (hand-value hand2)))
-            (define (rank>? r1 r2)
-                (cond
-                    [(empty? r1) #f]
-                    [(> (first r1) (first r2)) #t]
-                    [(> (first r2) (first r1)) #f]
-                    [else (rank>? (rest r1) (rest r2))]))
-    ; - IN -
-    (rank>? rank1 rank2)))
 
 
-(define (rank=? hand1 hand2)
-    """[ListOf N] [ListOf N] -> Boolean
-    Returns #true if rank1 > rank2"""
-    (local (
-            (define rank1 (hand-value hand1))
-            (define rank2 (hand-value hand2)))
-            (define (rank=? r1 r2)
-                (cond
-                    [(empty? r1) #t]
-                    [(not (= (first r1) (first r2))) #f]
-                    [else (rank=? (rest r1) (rest r2))]))
-    ; - IN -
-    (rank=? rank1 rank2)))
+(define (f-rank-compare op pred1)
+    """[N N -> Boolean] Boolean -> [Hand Hand -> Boolean]
+    An abstraction for generating functions that perform rank comnparisons"""
+    (lambda (h1 h2) 
+        (local (
+                (define rank1 (hand-value h1))
+                (define rank2 (hand-value h2))
+                (define (rank-compare r1 r2)
+                    (cond
+                        [(empty? r1) pred1]
+                        [(not (op (first r1) (first r2))) #f]
+                        [(and (not (op (first r2) (first r1)))
+                        (not (= (first r2) (first r1)))) #t]
+                        [else (rank-compare (rest r1) (rest r2))])))
+        ; - IN -
+        (rank-compare rank1 rank2))))
+    
+(define rank>? (f-rank-compare > #f))
+
+(define rank=? (f-rank-compare = #t))
 
 
 (define (best-hand hands)
@@ -201,18 +193,18 @@
 (check-equal? (hand-value hc) '(0 14 6 5 4 3))
 (check-equal? (hand-value hc2) '(0 14 6 5 4 3))
 (check-equal? (hand-value hc3) '(0 14 6 5 4 3))
-(check-equal? (best-hand (list f hc fh 2p)) (list fh))
-(check-equal? (best-hand (list hc hc2 hc3)) (list hc3 hc2 hc))
 (check-equal? (rank>? f s) #t)
 (check-equal? (rank>? s f) #f)
 (check-equal? (rank>? hc hc2) #f)
 (check-equal? (rank=? hc hc2) #t)
+(check-equal? (best-hand (list f hc fh 2p)) (list fh))
+(check-equal? (best-hand (list hc hc2 hc3)) (list hc3 hc2 hc))
 
 
 
 ;======================
 ; action!
 
-(define round (deal 10 5))
+(define round (deal 4 5))
 
 (best-hand round)
