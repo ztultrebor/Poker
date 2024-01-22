@@ -107,7 +107,6 @@
     (not (false? x)))
 
 
-
 (define (list>? lst1 lst2)
     """[ListOf N] [ListOf N] -> Boolean
     Returns #true if lst1 >= lst2"""
@@ -117,20 +116,52 @@
         [(< (first lst1) (first lst2)) #f]
         [else (list>? (rest lst1) (rest lst2))]))
 
+;; !!! can these be abstracted?
+(define (rank>? hand1 hand2)
+    """[ListOf N] [ListOf N] -> Boolean
+    Returns #true if rank1 > rank2"""
+    (local (
+            (define rank1 (hand-value hand1))
+            (define rank2 (hand-value hand2)))
+            (define (rank>? r1 r2)
+                (cond
+                    [(empty? r1) #f]
+                    [(> (first r1) (first r2)) #t]
+                    [(> (first r2) (first r1)) #f]
+                    [else (rank>? (rest r1) (rest r2))]))
+    ; - IN -
+    (rank>? rank1 rank2)))
+
+
+(define (rank=? hand1 hand2)
+    """[ListOf N] [ListOf N] -> Boolean
+    Returns #true if rank1 > rank2"""
+    (local (
+            (define rank1 (hand-value hand1))
+            (define rank2 (hand-value hand2)))
+            (define (rank=? r1 r2)
+                (cond
+                    [(empty? r1) #t]
+                    [(not (= (first r1) (first r2))) #f]
+                    [else (rank=? (rest r1) (rest r2))]))
+    ; - IN -
+    (rank=? rank1 rank2)))
+
 
 (define (best-hand hands)
     """ [ListOf [ListOf String]] -> [ListOf String]
     returns the winning hand from a round of poker"""
     (local (
-        (define ordered (sort hands #:key hand-value list>?))
-        (define (find-winning-hand hs)
+        (define (find-winning-hand hs winner)
             (cond
-                [(empty? (rest hs)) (list (first hs))]
-                [(list>? (hand-value (second ordered)) (hand-value (first ordered)))
-                    (cons (first hs) (find-winning-hand (rest hs)))]
-                [else (list (first hs))])))
+                [(empty? hs) winner]
+                [(empty? winner) (find-winning-hand (rest hs) (list (first hs)))]
+                [(rank>? (first hs) (first winner)) (find-winning-hand (rest hs) (list (first hs)))]
+                [(rank=? (first hs) (first winner)) 
+                    (find-winning-hand (rest hs) (cons (first hs) winner))]
+                [else (find-winning-hand (rest hs) winner)])))
         ; - IN -
-        (find-winning-hand ordered)))
+        (find-winning-hand hands '())))
 
 
 
@@ -168,8 +199,16 @@
 (check-equal? (hand-value 2p) '(2 10 9 13 10 10 9 9))
 (check-equal? (hand-value p) '(1 14 14 14 6 5 3))
 (check-equal? (hand-value hc) '(0 14 6 5 4 3))
+(check-equal? (hand-value hc2) '(0 14 6 5 4 3))
+(check-equal? (hand-value hc3) '(0 14 6 5 4 3))
 (check-equal? (best-hand (list f hc fh 2p)) (list fh))
 (check-equal? (best-hand (list hc hc2 hc3)) (list hc3 hc2 hc))
+(check-equal? (rank>? f s) #t)
+(check-equal? (rank>? s f) #f)
+(check-equal? (rank>? hc hc2) #f)
+(check-equal? (rank=? hc hc2) #t)
+
+
 
 ;======================
 ; action!
