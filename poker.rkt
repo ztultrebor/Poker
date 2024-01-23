@@ -5,8 +5,8 @@
 ; constants
 
 (define deck (foldr append '() 
-            (map (lambda (s) 
-                (map (lambda (r) (list->string (list r s)))
+            (map (λ (s) 
+                (map (λ (r) (list->string (list r s)))
                     (string->list "23456789TJQKA"))) 
                 (string->list "CDHS"))))
 
@@ -35,7 +35,7 @@
     """ [ListOf String] -> [ListOf N]
     takes a hand of cards and returns an ordered list of card ranks"""
     (local (
-        (define ranks (sort (map (lambda (c) (card-rank c)) hand) >)))
+        (define ranks (sort (map (λ (c) (card-rank c)) hand) >)))
     ; - IN -
         (cond
             [(equal? ranks '(14 5 4 3 2)) '(5 4 3 2 1)]
@@ -67,7 +67,7 @@
             Counts up the number of a given rank in a hand"""
             (cond
                 [(empty? this-rank) #f]
-                [else (if (= n (count (lambda (r) (= (first this-rank) r)) ranks))
+                [else (if (= n (count (λ (r) (= (first this-rank) r)) ranks))
                             (first this-rank)
                             (count-ranks (rest this-rank)))])))
         ; - IN -
@@ -79,14 +79,13 @@
     determines the relative value of a poker hand. 
     Only winning matters, so not a quantitative measure"""
     (local (
-            (define suits (map (lambda (c) (second (string->list c))) hand))
+            (define suits (map (λ (c) (second (string->list c))) hand))
             (define ranks (hand-rank hand))
             (define pairs 
                 (sort (set->list (list->set (list (kind 2 ranks) (kind 2 (sort ranks <))))) >))
             (define three-kind (kind 3 ranks))
             (define four-kind (kind 4 ranks))
-            (define s (andmap (lambda (r1 r2) (= (- r1 r2) 1))
-                                    (reverse (rest (reverse ranks))) (rest ranks)))
+            (define s (= (foldlm (λ (x y z) (* (- x y) z)) (first ranks) 1 (rest ranks)) 1))
             (define f (= (length (set->list (list->set suits))) 1)))
             ; - IN -
             (cond
@@ -101,6 +100,22 @@
                 [else (cons 0 ranks)])))
 
 
+(define (best-hand hands)
+    """ [ListOf [ListOf String]] -> [ListOf String]
+    returns the winning hand from a round of poker"""
+    (local (
+        (define (find-winning-hand hs winner)
+            (cond
+                [(empty? hs) winner]
+                [(empty? winner) (find-winning-hand (rest hs) (list (first hs)))]
+                [(rank>? (first hs) (first winner)) (find-winning-hand (rest hs) (list (first hs)))]
+                [(rank=? (first hs) (first winner)) 
+                    (find-winning-hand (rest hs) (cons (first hs) winner))]
+                [else (find-winning-hand (rest hs) winner)])))
+        ; - IN -
+        (find-winning-hand hands '())))
+
+        
 (define (true? x)
     """ [Maybe X] -> Boolean
     Like false?, but the opposite"""
@@ -117,11 +132,10 @@
         [else (list>? (rest lst1) (rest lst2))]))
 
 
-
 (define (f-rank-compare op pred1)
     """[N N -> Boolean] Boolean -> [Hand Hand -> Boolean]
     An abstraction for generating functions that perform rank comnparisons"""
-    (lambda (h1 h2) 
+    (λ (h1 h2) 
         (local (
                 (define rank1 (hand-value h1))
                 (define rank2 (hand-value h2))
@@ -140,20 +154,12 @@
 (define rank=? (f-rank-compare = #t))
 
 
-(define (best-hand hands)
-    """ [ListOf [ListOf String]] -> [ListOf String]
-    returns the winning hand from a round of poker"""
-    (local (
-        (define (find-winning-hand hs winner)
-            (cond
-                [(empty? hs) winner]
-                [(empty? winner) (find-winning-hand (rest hs) (list (first hs)))]
-                [(rank>? (first hs) (first winner)) (find-winning-hand (rest hs) (list (first hs)))]
-                [(rank=? (first hs) (first winner)) 
-                    (find-winning-hand (rest hs) (cons (first hs) winner))]
-                [else (find-winning-hand (rest hs) winner)])))
-        ; - IN -
-        (find-winning-hand hands '())))
+(define (foldlm f memo acc lst)
+    """ [X Y Z -> Z] Y Z [ListOf X] -> Z
+    foldl with two accumulators"""
+    (cond
+        [(empty? lst) acc]
+        [else (foldlm f (first lst) (f (first lst) memo acc) (rest lst))]))
 
 
 
